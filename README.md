@@ -146,3 +146,7 @@ make screenshots   # regenera las imágenes de docs/ con el modo demo (requiere 
 | `internal/app` | Casos de uso compartidos por la app y los comandos. |
 | `internal/demo` | Modo demo: datos generados y un servidor falso de Fintual. |
 | `internal/tui` | App de terminal ([Bubble Tea](https://github.com/charmbracelet/bubbletea) y [Lip Gloss](https://github.com/charmbracelet/lipgloss)). |
+
+## Licencia
+
+[MIT](LICENSE) © kalelc. Puedes usar, modificar y compartir el código manteniendo el aviso de copyright. Se entrega sin garantías: úsalo bajo tu propia responsabilidad.
