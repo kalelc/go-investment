@@ -1,0 +1,22 @@
+# Build output
+bin/
+
+# Local data: snapshots, balances and debug logs
+*.db
+*.db-*
+*.log
+
+# Secrets
+.env
+.env.*
+
+# Test and coverage output
+*.test
+*.out
+coverage.*
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
