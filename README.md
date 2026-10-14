@@ -14,7 +14,7 @@ Sigue tus inversiones en [Fintual](https://fintual.cl) (Chile) desde la terminal
 - **Foto diaria:** cada vez que abres la app (o corres `goinv snapshot`) guarda el saldo de cada objetivo en una base local, una vez por día.
 - **Historia de cada objetivo desde que lo abriste**, cargada desde Fintual:
   - **Mensual:** saldo al cierre, aportes netos, resultado del mes (sin contar tus aportes), rentabilidad y un resumen por año con el mejor y peor mes.
-  - **Diaria:** saldo, variación y resultado de cada día.
+  - **Diaria:** saldo, variación y resultado de cada día. Fintual entrega un punto por día solo para el último año; antes, uno por semana. La app guarda lo que descarga, así que desde que empiezas a usarla tu historia diaria se va acumulando más allá de ese año.
 
 Incluye objetivos normales, reservas, APV (A, B y depósito convenido) e inversiones con distribución personalizada.
 
@@ -33,14 +33,21 @@ go install github.com/kalelc/go-investment/cmd/goinv@latest
 goinv
 ```
 
-El binario queda en `$(go env GOPATH)/bin` (normalmente `~/go/bin`); si `goinv` no se encuentra, agrega esa carpeta a tu `PATH`. Para actualizar, vuelve a correr el mismo `go install`.
+Go instala el programa en `$(go env GOPATH)/bin` (normalmente `~/go/bin`). Si después `goinv` responde *command not found*, esa carpeta no está en tu `PATH`. Agrégala en tu `~/.zshrc` (o `~/.bashrc`) y abre una terminal nueva:
+
+```sh
+export PATH="$(go env GOPATH)/bin:$PATH"
+```
+
+Si usas un gestor de versiones como goenv, la carpeta depende de la versión de Go (por ejemplo `~/go/1.26.1/bin`); el comando de arriba siempre apunta a la correcta. Para actualizar, vuelve a correr el mismo `go install`.
 
 **Desde el código** (si quieres modificarla):
 
 ```sh
 git clone https://github.com/kalelc/go-investment.git
 cd go-investment
-make run
+make run        # corre la app sin instalarla
+make install    # o instálala como goinv (te avisa si falta agregarla al PATH)
 ```
 
 ## Uso

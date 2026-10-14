@@ -102,3 +102,39 @@ func TestBalanceHistoryUpsertAndOrder(t *testing.T) {
 		t.Fatal("debería haber historial")
 	}
 }
+
+func TestTrimLeadingEmptyHistory(t *testing.T) {
+	st, err := Open(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	ctx := context.Background()
+
+	pts := []fintual.BalancePoint{
+		{Date: "2023-10-13", Raw: []byte(`{}`)},
+		{Date: "2023-10-20", Raw: []byte(`{}`)},
+		{Date: "2026-03-10", Valuation: 100, Raw: []byte(`{}`)},
+		{Date: "2026-04-01", Raw: []byte(`{}`)}, // emptied later: kept
+		{Date: "2026-05-01", Valuation: 50, Raw: []byte(`{}`)},
+	}
+	if err := st.SaveBalanceHistory(ctx, "goal:1", pts); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.SaveBalanceHistory(ctx, "goal:2", pts[:2]); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"goal:1", "goal:2"} {
+		if err := st.TrimLeadingEmptyHistory(ctx, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	got, _ := st.BalanceHistory(ctx, "goal:1")
+	if len(got) != 3 || got[0].Date != "2026-03-10" || got[1].Date != "2026-04-01" {
+		t.Fatalf("esperaba conservar desde la apertura, obtuve %+v", got)
+	}
+	if got, _ := st.BalanceHistory(ctx, "goal:2"); len(got) != 0 {
+		t.Fatalf("un objetivo sin saldo nunca no debería tener historial, obtuve %+v", got)
+	}
+}

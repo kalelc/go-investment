@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
@@ -136,21 +137,24 @@ func (g goalView) renderMonthly(height int) string {
 }
 
 func (g goalView) renderDaily(height int) string {
-	start, visible := g.visible(height, 21)
+	start, visible := g.visible(height, 24)
 	t := newTable("Fecha", "Saldo", "Var. saldo", "Resultado día", colCurrentGain, colRealizedGain, colTotalGain)
 	var styles [][5]lipgloss.Style
 	for i := len(g.points) - 1 - start; i >= 0 && len(styles) < visible; i-- {
 		p := g.points[i]
-		varSaldo, resultado := "—", "—"
+		date, varSaldo, resultado := p.Date, "—", "—"
 		row := [5]lipgloss.Style{numStyle, numStyle,
 			highlightCurrent(signStyle(ptr(p.UnrealizedGain))), signStyle(ptr(p.RealizedGain)), signStyle(ptr(totalGain(p)))}
 		if i > 0 {
 			prev := g.points[i-1]
+			if days := daysBetween(prev.Date, p.Date); days > 1 {
+				date += fmt.Sprintf(" (%d días)", days)
+			}
 			dv, dg := p.Valuation-prev.Valuation, totalGain(p)-totalGain(prev)
 			varSaldo, resultado = optSigned(&dv), optSigned(&dg)
 			row[0], row[1] = signStyle(&dv), signStyle(&dg)
 		}
-		t.Row(p.Date, CLP(p.Valuation), varSaldo, resultado,
+		t.Row(date, CLP(p.Valuation), varSaldo, resultado,
 			optSigned(ptr(p.UnrealizedGain)), optSigned(ptr(p.RealizedGain)), optSigned(ptr(totalGain(p))))
 		styles = append(styles, row)
 	}
@@ -169,7 +173,18 @@ func (g goalView) renderDaily(height int) string {
 		}
 	})
 	position := mutedStyle.Render(fmt.Sprintf("días %d–%d de %d", start+1, start+len(styles), len(g.points)))
-	return t.Render() + "\n" + position + "\n\n" + gainLegend()
+	note := mutedStyle.Render("Fintual entrega un punto por día solo para el último año; antes, uno por semana.\n" +
+		"En las filas marcadas con (N días), la variación y el resultado cubren ese período.")
+	return t.Render() + "\n" + position + "\n\n" + gainLegend() + "\n\n" + note
+}
+
+func daysBetween(from, to string) int {
+	a, errA := time.Parse(time.DateOnly, from)
+	b, errB := time.Parse(time.DateOnly, to)
+	if errA != nil || errB != nil {
+		return 0
+	}
+	return int(b.Sub(a).Hours() / 24)
 }
 
 func ptr(v float64) *float64 { return &v }

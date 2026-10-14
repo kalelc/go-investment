@@ -116,6 +116,9 @@ func (a *App) SyncHistory(ctx context.Context, goals []fintual.Goal) (int, error
 			}
 			total += len(points)
 		}
+		if err := a.Store.TrimLeadingEmptyHistory(ctx, g.ID); err != nil {
+			return total, err
+		}
 	}
 	return total, touch(client, sess)
 }

@@ -176,3 +176,17 @@ func (s *Store) HasBalanceHistory(ctx context.Context, goalID string) (bool, err
 	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM balance_history WHERE goal_id = ?`, goalID).Scan(&n)
 	return n > 0, err
 }
+
+// TrimLeadingEmptyHistory deletes the all-zero points Fintual returns for
+// dates before a goal was opened. Zeros after the first non-empty point are
+// kept: a goal can be emptied and refilled.
+func (s *Store) TrimLeadingEmptyHistory(ctx context.Context, goalID string) error {
+	_, err := s.db.ExecContext(ctx, `
+		DELETE FROM balance_history
+		WHERE goal_id = ? AND date < COALESCE((
+			SELECT MIN(date) FROM balance_history
+			WHERE goal_id = ? AND (valuation != 0 OR cost_basis != 0 OR unrealized_gain != 0
+				OR realized_gain != 0 OR withdrawn != 0)
+		), '9999-12-31')`, goalID, goalID)
+	return err
+}

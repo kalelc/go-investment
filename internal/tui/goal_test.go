@@ -98,6 +98,23 @@ func TestMonthlySummaries(t *testing.T) {
 	}
 }
 
+func TestDailyViewMarksMultiDayRows(t *testing.T) {
+	pts := []fintual.BalancePoint{
+		{Date: "2025-06-01", Valuation: 1000},
+		{Date: "2025-06-08", Valuation: 1010, UnrealizedGain: 10},
+		{Date: "2025-06-09", Valuation: 1015, UnrealizedGain: 15},
+	}
+	g := newGoalView(fintual.Goal{Name: "APV"}, pts)
+	g.mode = goalDaily
+	out := g.render(120, 50)
+	if !strings.Contains(out, "2025-06-08 (7 días)") {
+		t.Errorf("la fila semanal debería marcarse:\n%s", out)
+	}
+	if strings.Contains(out, "2025-06-09 (") {
+		t.Errorf("una fila diaria no debería marcarse:\n%s", out)
+	}
+}
+
 func TestGoalViewMonthlyIsDefault(t *testing.T) {
 	g := newGoalView(fintual.Goal{Name: "Casa"}, fakeHistory(400))
 	out := g.render(100, 50)
