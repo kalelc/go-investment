@@ -100,6 +100,14 @@ func (c *Client) Goals(ctx context.Context) ([]Goal, error) {
 }
 
 func (c *Client) balance(ctx context.Context, k kind, o object) (Goal, error) {
+	gain := `date
+    unrealizedGainOrLossAmount
+    realizedGainOrLossAmount`
+	if k == kindApvA {
+		// APV-A splits the gain between the user's contributions and the state bonus.
+		gain = `userOwnedPortfolioGainOrLossBreakdown { unrealizedGainOrLossAmount realizedGainOrLossAmount }
+    stateOwnedPortfolioGainOrLossBreakdown { unrealizedGainOrLossAmount realizedGainOrLossAmount }`
+	}
 	query := fmt.Sprintf(`query GoinvBalance($id: ID!) {
   balance: %[1]s(%[3]s: $id) {
     calculatedAt
@@ -107,11 +115,9 @@ func (c *Client) balance(ctx context.Context, k kind, o object) (Goal, error) {
     accruedNetDepositsAmount
   }
   gain: %[2]s(%[3]s: $id) {
-    date
-    unrealizedGainOrLossAmount
-    realizedGainOrLossAmount
+    %[4]s
   }
-}`, k.field, k.gain, k.arg)
+}`, k.field, k.gain, k.arg, gain)
 
 	var raw json.RawMessage
 	if err := c.Query(ctx, "GoinvBalance", query, map[string]any{"id": o.ID}, &raw); err != nil {
@@ -123,8 +129,9 @@ func (c *Client) balance(ctx context.Context, k kind, o object) (Goal, error) {
 			NetDeposits amount `json:"accruedNetDepositsAmount"`
 		} `json:"balance"`
 		Gain *struct {
-			Unrealized amount `json:"unrealizedGainOrLossAmount"`
-			Realized   amount `json:"realizedGainOrLossAmount"`
+			gainBreakdown
+			User  *gainBreakdown `json:"userOwnedPortfolioGainOrLossBreakdown"`
+			State *gainBreakdown `json:"stateOwnedPortfolioGainOrLossBreakdown"`
 		} `json:"gain"`
 	}
 	if err := json.Unmarshal(raw, &resp); err != nil {
@@ -137,15 +144,34 @@ func (c *Client) balance(ctx context.Context, k kind, o object) (Goal, error) {
 		g.Deposited = b.NetDeposits.ptr()
 	}
 	if gain := resp.Gain; gain != nil {
-		g.Profit, g.RealizedProfit = gain.Unrealized.ptr(), gain.Realized.ptr()
+		total := gain.gainBreakdown
+		for _, part := range []*gainBreakdown{gain.User, gain.State} {
+			if part != nil {
+				total.Unrealized = total.Unrealized.add(part.Unrealized)
+				total.Realized = total.Realized.add(part.Realized)
+			}
+		}
+		g.Profit, g.RealizedProfit = total.Unrealized.ptr(), total.Realized.ptr()
 	}
 	return g, nil
+}
+
+type gainBreakdown struct {
+	Unrealized amount `json:"unrealizedGainOrLossAmount"`
+	Realized   amount `json:"realizedGainOrLossAmount"`
 }
 
 // amount accepts numbers or strings: GraphQL decimal scalars often come as strings.
 type amount struct {
 	Value float64
 	Valid bool
+}
+
+func (a amount) add(b amount) amount {
+	if !b.Valid {
+		return a
+	}
+	return amount{Value: a.Value + b.Value, Valid: true}
 }
 
 func (a amount) ptr() *float64 {

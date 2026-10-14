@@ -46,7 +46,12 @@ func fakeFintual(t *testing.T) *httptest.Server {
 			case strings.Contains(query, "clCustomAllocatedInvestmentLatestAccruedBalance"):
 				w.Write([]byte(`{"data":{"balance":{"accruedValuationAmount":300000,"accruedNetDepositsAmount":280000},"gain":null}}`))
 			case strings.Contains(query, "clApvAGoalLatestAccruedBalance"):
-				w.Write([]byte(`{"data":{"balance":{"accruedValuationAmount":820000,"accruedNetDepositsAmount":null},"gain":null}}`))
+				if strings.Contains(query, "date") || !strings.Contains(query, "stateOwnedPortfolioGainOrLossBreakdown") {
+					t.Errorf("query APV-A con campos que Fintual no acepta: %s", query)
+				}
+				w.Write([]byte(`{"data":{"balance":{"accruedValuationAmount":820000,"accruedNetDepositsAmount":null},
+					"gain":{"userOwnedPortfolioGainOrLossBreakdown":{"unrealizedGainOrLossAmount":"30000","realizedGainOrLossAmount":"1000"},
+					"stateOwnedPortfolioGainOrLossBreakdown":{"unrealizedGainOrLossAmount":"5000","realizedGainOrLossAmount":null}}}}`))
 			default:
 				t.Errorf("query inesperada: %s", query)
 			}
@@ -91,7 +96,8 @@ func TestLoginAndGoals(t *testing.T) {
 		casa.RealizedProfit == nil || *casa.RealizedProfit != 40000.4 {
 		t.Errorf("objetivo Casa mal parseado: %+v", casa)
 	}
-	if apv.ID != "apv_a:7" || apv.NAV != 820000 || apv.Deposited != nil || apv.Profit != nil {
+	if apv.ID != "apv_a:7" || apv.NAV != 820000 || apv.Deposited != nil || apv.Profit == nil || *apv.Profit != 35000 ||
+		apv.RealizedProfit == nil || *apv.RealizedProfit != 1000 {
 		t.Errorf("objetivo APV mal parseado: %+v", apv)
 	}
 }
