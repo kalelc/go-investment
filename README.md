@@ -4,6 +4,10 @@ Sigue tus inversiones en [Fintual](https://fintual.cl) (Chile) desde la terminal
 
 > **App no oficial.** No está afiliada a Fintual ni respaldada por ellos. Usa la misma API interna que la web de fintual.cl, que no es pública y puede cambiar sin aviso; si eso pasa, la app puede dejar de funcionar.
 
+![goinv en acción](docs/demo.gif)
+
+*Las imágenes usan datos inventados del [modo demo](#probar-sin-cuenta).*
+
 ## Qué hace
 
 - **Panel del día:** saldo de cada objetivo y el total de tu patrimonio, con:
@@ -17,6 +21,20 @@ Sigue tus inversiones en [Fintual](https://fintual.cl) (Chile) desde la terminal
   - **Diaria:** saldo, variación y resultado de cada día. Fintual entrega un punto por día solo para el último año; antes, uno por semana. La app guarda lo que descarga, así que desde que empiezas a usarla tu historia diaria se va acumulando más allá de ese año.
 
 Incluye objetivos normales, reservas, APV (A, B y depósito convenido) e inversiones con distribución personalizada.
+
+### Capturas
+
+**Panel del día:** saldo, las tres ganancias y la variación de cada objetivo.
+
+![Panel](docs/panel.png)
+
+**Historia mensual de un objetivo:** aportes, resultado y rentabilidad de cada mes, con un resumen por año.
+
+![Historia mensual](docs/mensual.png)
+
+**Historia diaria:** el día 5 el saldo sube por el aporte, pero el resultado del día muestra solo lo que se movió la inversión.
+
+![Historia diaria](docs/diario.png)
 
 ## Requisitos
 
@@ -49,6 +67,14 @@ cd go-investment
 make run        # corre la app sin instalarla
 make install    # o instálala como goinv (te avisa si falta agregarla al PATH)
 ```
+
+## Probar sin cuenta
+
+```sh
+goinv demo      # o make demo desde el código
+```
+
+Abre la app completa con datos inventados: no se conecta a Fintual, no pide login y no toca tu llavero ni tu base de datos (usa un servidor falso, un llavero en memoria y una base temporal que se borra al salir).
 
 ## Uso
 
@@ -108,6 +134,7 @@ Además:
 make test       # tests
 make vet        # go vet
 go run golang.org/x/vuln/cmd/govulncheck@latest ./...   # vulnerabilidades conocidas
+make screenshots   # regenera las imágenes de docs/ con el modo demo (requiere VHS: brew install vhs)
 ```
 
 | Paquete | Qué contiene |
@@ -117,4 +144,5 @@ go run golang.org/x/vuln/cmd/govulncheck@latest ./...   # vulnerabilidades conoc
 | `internal/session` | Sesión en el llavero del sistema. |
 | `internal/store` | Base SQLite: fotos diarias e historia de saldos. |
 | `internal/app` | Casos de uso compartidos por la app y los comandos. |
+| `internal/demo` | Modo demo: datos generados y un servidor falso de Fintual. |
 | `internal/tui` | App de terminal ([Bubble Tea](https://github.com/charmbracelet/bubbletea) y [Lip Gloss](https://github.com/charmbracelet/lipgloss)). |

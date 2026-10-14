@@ -3,6 +3,7 @@
 // Usage:
 //
 //	goinv                   terminal app (login, balances, history)
+//	goinv demo              terminal app with generated data, no account needed
 //	goinv snapshot          save today's snapshot with the stored session (for cron)
 //	goinv history [days]    list stored snapshots (default 30 days)
 //	goinv status            show the stored session and its age
@@ -29,6 +30,7 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"github.com/kalelc/go-investment/internal/app"
+	"github.com/kalelc/go-investment/internal/demo"
 	"github.com/kalelc/go-investment/internal/session"
 	"github.com/kalelc/go-investment/internal/store"
 	"github.com/kalelc/go-investment/internal/tui"
@@ -48,6 +50,13 @@ func run(args []string) error {
 	}
 
 	switch cmd {
+	case "demo":
+		a, cleanup, err := demo.Start(context.Background())
+		if err != nil {
+			return err
+		}
+		defer cleanup()
+		return tui.Run(a)
 	case "status":
 		return status()
 	case "logout":
@@ -123,7 +132,7 @@ func run(args []string) error {
 		return nil
 
 	default:
-		return fmt.Errorf("comando desconocido: %q (uso: goinv [snapshot | history [días] | status | logout])", cmd)
+		return fmt.Errorf("comando desconocido: %q (uso: goinv [demo | snapshot | history [días] | status | logout])", cmd)
 	}
 }
 

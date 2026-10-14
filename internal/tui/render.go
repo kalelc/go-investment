@@ -21,6 +21,8 @@ var (
 	errorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Red)
 	borderStyle = lipgloss.NewStyle().Foreground(lipgloss.BrightBlack)
 
+	selectedBackground = lipgloss.Color("238")
+
 	currentColor       = lipgloss.Yellow
 	currentHeaderStyle = headerStyle.Foreground(currentColor)
 	currentLabelStyle  = lipgloss.NewStyle().Bold(true).Foreground(currentColor)
@@ -129,7 +131,7 @@ func RenderSnapshot(s *app.Snapshot, selected int) string {
 			st = highlightCurrent(st)
 		}
 		if row == selected {
-			st = st.Reverse(true)
+			st = st.Background(selectedBackground)
 		}
 		return st.Bold(row == last || col == 2)
 	})

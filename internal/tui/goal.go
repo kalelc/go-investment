@@ -56,7 +56,7 @@ func (g goalView) render(width, height int) string {
 	}
 	first, last := g.points[0], g.points[len(g.points)-1]
 
-	summary := fmt.Sprintf("Desde %s · %d días · Saldo %s\n", first.Date, len(g.points), CLP(last.Valuation))
+	summary := fmt.Sprintf("Desde %s · %d días · Saldo %s\n", first.Date, daysBetween(first.Date, last.Date)+1, CLP(last.Valuation))
 	summary += currentLabelStyle.Render(colCurrentGain) + " " + highlightCurrent(signStyle(ptr(last.UnrealizedGain)).UnsetPadding().UnsetAlign()).Render(optSigned(ptr(last.UnrealizedGain))) +
 		" · " + colRealizedGain + " " + colorSigned(last.RealizedGain) +
 		" · " + colTotalGain + " " + colorSigned(totalGain(last))
@@ -172,7 +172,7 @@ func (g goalView) renderDaily(height int) string {
 			return styles[r][c-2]
 		}
 	})
-	position := mutedStyle.Render(fmt.Sprintf("días %d–%d de %d", start+1, start+len(styles), len(g.points)))
+	position := mutedStyle.Render(fmt.Sprintf("filas %d–%d de %d", start+1, start+len(styles), len(g.points)))
 	note := mutedStyle.Render("Fintual entrega un punto por día solo para el último año; antes, uno por semana.\n" +
 		"En las filas marcadas con (N días), la variación y el resultado cubren ese período.")
 	return t.Render() + "\n" + position + "\n\n" + gainLegend() + "\n\n" + note

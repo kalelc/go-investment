@@ -2,13 +2,21 @@ BIN := bin/goinv
 RUN := go run ./cmd/goinv
 DAYS ?= 30
 
-.PHONY: run build install test vet fmt logout status snapshot history clean
+.PHONY: run demo build install test vet fmt logout status snapshot history screenshots clean
 
 run:
 	@$(RUN)
 
+# Same app with generated data: no account, keychain or real database.
+demo:
+	@$(RUN) demo
+
 build:
 	go build -o $(BIN) ./cmd/goinv
+
+# Needs VHS: brew install vhs
+screenshots: build
+	vhs docs/demo.tape
 
 install:
 	go install ./cmd/goinv

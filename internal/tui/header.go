@@ -7,11 +7,12 @@ import (
 )
 
 var (
-	barBackground = lipgloss.Color("236")
-	barStyle      = lipgloss.NewStyle().Background(barBackground).Foreground(lipgloss.BrightWhite)
-	barBrandStyle = barStyle.Bold(true).Foreground(lipgloss.Cyan)
-	barMutedStyle = barStyle.Foreground(lipgloss.BrightBlack)
-	barValueStyle = barStyle.Bold(true).Foreground(currentColor)
+	barBackground  = lipgloss.Color("236")
+	barStyle       = lipgloss.NewStyle().Background(barBackground).Foreground(lipgloss.BrightWhite)
+	barBrandStyle  = barStyle.Bold(true).Foreground(lipgloss.Cyan)
+	barMutedStyle  = barStyle.Foreground(lipgloss.BrightBlack)
+	barValueStyle  = barStyle.Bold(true).Foreground(currentColor)
+	demoBadgeStyle = lipgloss.NewStyle().Bold(true).Background(lipgloss.Magenta).Foreground(lipgloss.Black)
 )
 
 // headerBar renders a full-width bar with the breadcrumb on the left and the
@@ -20,6 +21,9 @@ var (
 func (m model) headerBar() string {
 	sep := barMutedStyle.Render(" › ")
 	left := barStyle.Render(" ") + barBrandStyle.Render("Fintual")
+	if m.app != nil && m.app.Demo {
+		left += barStyle.Render(" ") + demoBadgeStyle.Render(" DEMO ")
+	}
 	for _, crumb := range m.breadcrumb() {
 		left += sep + barStyle.Render(crumb)
 	}

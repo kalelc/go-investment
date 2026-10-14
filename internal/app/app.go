@@ -18,6 +18,9 @@ var ErrNeedLogin = errors.New("hay que iniciar sesión en Fintual")
 type App struct {
 	Store *store.Store
 	Debug io.Writer
+	// BaseURL overrides Fintual's URL; the demo points it at a fake server.
+	BaseURL string
+	Demo    bool
 }
 
 type Snapshot struct {
@@ -30,6 +33,9 @@ type Snapshot struct {
 func (a *App) client() *fintual.Client {
 	c := fintual.New()
 	c.Debug = a.Debug
+	if a.BaseURL != "" {
+		c.BaseURL = a.BaseURL
+	}
 	return c
 }
 

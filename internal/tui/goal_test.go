@@ -51,7 +51,7 @@ func TestGoalViewRender(t *testing.T) {
 	g := newGoalView(fintual.Goal{Name: "Casa"}, fakeHistory(400))
 	g.mode = goalDaily
 	out := g.render(100, 40)
-	for _, want := range []string{"Desde 2025-01-01", "400 días", "2026-02-04", "días 1–"} {
+	for _, want := range []string{"Desde 2025-01-01", "400 días", "2026-02-04", "filas 1–"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("falta %q en:\n%s", want, out)
 		}
@@ -95,6 +95,13 @@ func TestMonthlySummaries(t *testing.T) {
 	years := yearSummaries(months)
 	if len(years) != 1 || years[0].Result != 5 || years[0].Best != "2026-01" || years[0].Worst != "2026-02" {
 		t.Errorf("año inesperado: %+v", years)
+	}
+}
+
+func TestSummaryCountsCalendarDaysNotPoints(t *testing.T) {
+	pts := []fintual.BalancePoint{{Date: "2025-01-01", Valuation: 1}, {Date: "2025-01-08", Valuation: 1}, {Date: "2025-01-15", Valuation: 1}}
+	if out := newGoalView(fintual.Goal{}, pts).render(100, 40); !strings.Contains(out, "15 días") {
+		t.Errorf("3 puntos semanales cubren 15 días:\n%s", out)
 	}
 }
 
